@@ -1,18 +1,17 @@
+# syntax=docker/dockerfile:1.4
 FROM python:3.13-slim
 
-# Set env early to use non-interactive apt
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    # DJANGO_ENV=dev \
-    # DJANGO_SETTINGS_MODULE=backend.settings.dev \
+    PIP_NO_CACHE_DIR=0 \
     XDG_CACHE_HOME=/usr/src/app/.cache
 
 WORKDIR /usr/src/app
 
-# Install system dependencies in a single layer
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Кэшируем apt
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     gcc \
@@ -29,29 +28,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-liberation \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies into a virtualenv
+# Установка Python-зависимостей с кэшем pip
 COPY requirements.txt .
-RUN python3 -m venv /opt/venv && \
+
+RUN python3 -m venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN --mount=type=cache,target=/root/.cache/pip \
     . /opt/venv/bin/activate && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy source code
+# Копируем исходники
 COPY manage.py .
 COPY backend/ backend/
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh && \
     mkdir -p /usr/src/app/.cache/fontconfig && \
-    groupadd -g 1000 appgroup && \
-    useradd -u 1000 -g appgroup appuser && \
+    groupadd -r appgroup -g 1000 && \
+    useradd -r -u 1000 -g appgroup appuser && \
     chown -R appuser:appgroup /usr/src/app
 
 USER appuser
 
 EXPOSE 8000
 
-# ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

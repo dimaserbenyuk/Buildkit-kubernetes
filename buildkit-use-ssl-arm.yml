@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: buildkitd-config
+  namespace: buildkit
+data:
+  buildkitd.toml: |
+    root = "/var/lib/buildkit"
+    debug = true
+
+    [worker.oci]
+      enabled = true
+      gc = true
+      gc.keepstorage = "70%"
+      snapshotter = "overlayfs"
+      max-parallelism = 32
+
+    [registry."docker.io"]
+      mirrors = ["https://registry-1.docker.io"]
+      http = false
+      insecure = false
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: buildkitd-arm
+  name: buildkitd-arm
+  namespace: buildkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: buildkitd-arm
+  template:
+    metadata:
+      labels:
+        app: buildkitd-arm
+    spec:
+      containers:
+        - name: buildkitd-arm
+          image: moby/buildkit:master-rootless
+          args:
+            - --addr
+            - unix:///run/user/1000/buildkit/buildkitd.sock
+            - --addr
+            - tcp://0.0.0.0:1234
+            - --tlscacert
+            - /certs/ca.pem
+            - --tlscert
+            - /certs/cert.pem
+            - --tlskey
+            - /certs/key.pem
+            - --oci-worker-no-process-sandbox
+          readinessProbe:
+            exec:
+              command:
+                - buildctl
+                - debug
+                - workers
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            exec:
+              command:
+                - buildctl
+                - debug
+                - workers
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: Unconfined
+            appArmorProfile:
+              type: Unconfined
+          ports:
+            - containerPort: 1234
+          volumeMounts:
+            - name: certs
+              mountPath: /certs
+              readOnly: true
+            - name: buildkitd
+              mountPath: /home/user/.local/share/buildkit
+            - name: config
+              readOnly: true
+              mountPath: /etc/buildkit/buildkitd.toml
+              subPath: buildkitd.toml
+      volumes:
+        - name: certs
+          secret:
+            secretName: buildkit-daemon-certs
+        - name: buildkitd
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: buildkitd-config
+            items:
+              - key: buildkitd.toml
+                path: buildkitd.toml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: buildkitd-arm
+  namespace: buildkit
+  labels:
+    app: buildkitd-arm
+spec:
+  ports:
+    - port: 1234
+      protocol: TCP
+      targetPort: 1234
+  selector:
+    app: buildkitd-arm
+
