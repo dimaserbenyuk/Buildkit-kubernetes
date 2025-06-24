@@ -515,3 +515,152 @@ buildctl \
   --export-cache type=registry,ref=docker.io/serbenyuk/buildkit:cache,mode=max \
   --output type=image,name=docker.io/serbenyuk/buildkit:latest,push=true
 ```
+
+
+<details>
+<summary>Docker running logs with cache</summary>
+<br>
+building with "remote" instance using remote driver.
+<br><br>
+<pre>
+#1 [internal] load build definition from Dockerfile.cache
+#1 transferring dockerfile: 1.46kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1.4
+#2 DONE 0.7s
+
+#3 docker-image://docker.io/docker/dockerfile:1.4@sha256:9ba7531bd80fb0a858632727cf7a112fbfd19b17e94c4e84ced81e24ef1a0dbc
+#3 resolve docker.io/docker/dockerfile:1.4@sha256:9ba7531bd80fb0a858632727cf7a112fbfd19b17e94c4e84ced81e24ef1a0dbc done
+#3 CACHED
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/python:3.13-slim
+#5 DONE 0.2s
+
+#6 [internal] load build context
+#6 DONE 0.0s
+
+#7 [stage-0  1/10] FROM docker.io/library/python:3.13-slim@sha256:f2fdaec50160418e0c2867ba3e254755edd067171725886d5d303fd7057bbf81
+#7 resolve docker.io/library/python:3.13-slim@sha256:f2fdaec50160418e0c2867ba3e254755edd067171725886d5d303fd7057bbf81 done
+#7 DONE 0.0s
+
+#8 importing cache manifest from docker.io/serbenyuk/buildkit:cache
+#8 inferred cache manifest type: application/vnd.oci.image.manifest.v1+json done
+#8 DONE 0.7s
+
+#6 [internal] load build context
+#6 transferring context: 594B done
+#6 DONE 0.0s
+
+#9 [stage-0  9/10] COPY entrypoint.sh /entrypoint.sh
+#9 CACHED
+
+#10 [stage-0  3/10] RUN --mount=type=cache,target=/var/cache/apt     apt-get update && apt-get install -y --no-install-recommends     build-essential     libpq-dev     gcc     libcairo2     libpango-1.0-0     libpangocairo-1.0-0     libgdk-pixbuf-2.0-0     libffi-dev     shared-mime-info     libxml2     libxslt1.1     libjpeg-dev     libglib2.0-0     fonts-liberation  && apt-get clean && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [stage-0  8/10] COPY backend/ backend/
+#11 CACHED
+
+#12 [stage-0  4/10] COPY requirements.txt .
+#12 CACHED
+
+#13 [stage-0  6/10] RUN --mount=type=cache,target=/root/.cache/pip     . /opt/venv/bin/activate &&     pip install --upgrade pip &&     pip install -r requirements.txt
+#13 CACHED
+
+#14 [stage-0  7/10] COPY manage.py .
+#14 CACHED
+
+#15 [stage-0  2/10] WORKDIR /usr/src/app
+#15 CACHED
+
+#16 [stage-0  5/10] RUN python3 -m venv /opt/venv
+#16 CACHED
+
+#17 [stage-0 10/10] RUN chmod +x /entrypoint.sh &&     mkdir -p /usr/src/app/.cache/fontconfig &&     groupadd -r appgroup -g 1000 &&     useradd -r -u 1000 -g appgroup appuser &&     chown -R appuser:appgroup /usr/src/app
+#17 CACHED
+
+#18 [auth] serbenyuk/buildkit:pull,push token for registry-1.docker.io
+#18 DONE 0.0s
+
+#19 exporting to image
+#19 exporting layers done
+#19 exporting manifest sha256:5ce779671285edecbc413269d58fdd80bc4f478223e977ceb2ee5734c78555b3 done
+#19 exporting config sha256:0596a95a49c3fd5da56f3dbac62c113e25221fe14ce881cd82168f4e4ee21685 done
+#19 pushing layers
+#19 pushing layers 1.9s done
+#19 pushing manifest for docker.io/serbenyuk/buildkit:latest@sha256:5ce779671285edecbc413269d58fdd80bc4f478223e977ceb2ee5734c78555b3
+#19 pushing manifest for docker.io/serbenyuk/buildkit:latest@sha256:5ce779671285edecbc413269d58fdd80bc4f478223e977ceb2ee5734c78555b3 0.2s done
+#19 DONE 2.1s
+
+#20 exporting cache to registry
+#20 preparing build cache for export
+#20 writing layer sha256:00cb57eb3fd855ce60912d767e334f0ba7cb83fa5a9193015314eb20c37fa1df
+#20 writing layer sha256:00cb57eb3fd855ce60912d767e334f0ba7cb83fa5a9193015314eb20c37fa1df 0.3s done
+#20 writing layer sha256:071e771a343ded6c4fa4efa0fafd47a34acf5490fafaf883243520b54b446e61
+#20 writing layer sha256:071e771a343ded6c4fa4efa0fafd47a34acf5490fafaf883243520b54b446e61 0.3s done
+#20 writing layer sha256:268ab4f9d69628c88961a2e7328987521ba9cb826c91598abc9744c243b148a2
+#20 writing layer sha256:268ab4f9d69628c88961a2e7328987521ba9cb826c91598abc9744c243b148a2 0.3s done
+#20 writing layer sha256:34ef2a75627f6089e01995bfd3b3786509bbdc7cfb4dbc804b642e195340dbc9
+#20 writing layer sha256:34ef2a75627f6089e01995bfd3b3786509bbdc7cfb4dbc804b642e195340dbc9 0.3s done
+#20 writing layer sha256:442077be437c11fc0fd11465f41b4cc8d779cedcb51d965fef673069fdc5b037
+#20 writing layer sha256:442077be437c11fc0fd11465f41b4cc8d779cedcb51d965fef673069fdc5b037 0.3s done
+#20 writing layer sha256:679c4fe0cc4400ea09dbd63fc8151ddaac9eaeacadac9dbbf03b906d93e5f892
+#20 writing layer sha256:679c4fe0cc4400ea09dbd63fc8151ddaac9eaeacadac9dbbf03b906d93e5f892 0.3s done
+#20 writing layer sha256:8890ddc07177137fe1cf3fa3a70910078e8980fe7ce5e1673c23a04b4f4a6971
+#20 writing layer sha256:8890ddc07177137fe1cf3fa3a70910078e8980fe7ce5e1673c23a04b4f4a6971 0.3s done
+#20 writing layer sha256:c7499e60179d65725a5d2d2838a08601b37ef43f9c6bfbeba08af04c11f3e755
+#20 writing layer sha256:c7499e60179d65725a5d2d2838a08601b37ef43f9c6bfbeba08af04c11f3e755 0.3s done
+#20 writing layer sha256:ced3cd4271313bdafd3b4feed113f4d467931d4e84ad73ca056315507f8165ad
+#20 writing layer sha256:ced3cd4271313bdafd3b4feed113f4d467931d4e84ad73ca056315507f8165ad 0.3s done
+#20 writing layer sha256:d9f4f37a2d6a074b249edd2089005c065f95f224c255f633a157a0fbbbac8fd1
+#20 writing layer sha256:d9f4f37a2d6a074b249edd2089005c065f95f224c255f633a157a0fbbbac8fd1 0.3s done
+#20 writing layer sha256:ddd404ee64e22560f285acd167f35bdc8fc1a7a966dad4d5693c29c4aed70d02
+#20 writing layer sha256:ddd404ee64e22560f285acd167f35bdc8fc1a7a966dad4d5693c29c4aed70d02 0.3s done
+#20 writing layer sha256:e3a15fb29df34b9eb719a1cd65bfa5f055410df9ec1b709d753bcbfbcc26bd09
+#20 writing layer sha256:e3a15fb29df34b9eb719a1cd65bfa5f055410df9ec1b709d753bcbfbcc26bd09 0.3s done
+#20 writing layer sha256:f82933bf1ac3376eba611609063f1515b8d9d03919bfab31bfe4df0536a73c6c
+#20 writing layer sha256:f82933bf1ac3376eba611609063f1515b8d9d03919bfab31bfe4df0536a73c6c 0.3s done
+#20 writing config sha256:f32e2823fba43d06109d9e13b0213dbf962443ee37b0287ab4386224e66a79f3
+#20 writing config sha256:f32e2823fba43d06109d9e13b0213dbf962443ee37b0287ab4386224e66a79f3 0.3s done
+#20 writing cache image manifest sha256:2565091c9179fd7faa94326e441b03929f706cf525c659cce494eb0acfa1ba7c
+#20 preparing build cache for export 4.4s done
+#20 writing cache image manifest sha256:2565091c9179fd7faa94326e441b03929f706cf525c659cce494eb0acfa1ba7c 0.2s done
+#20 DONE 4.4s
+
+</pre>
+</details>
+
+---
+
+<details>
+<summary>Pod buildkitd-arm</summary>
+<br>
+Logs.
+<br><br>
+<pre>
+
+time="2025-06-24T12:42:36Z" level=warning msg="TLS is disabled for unix:///run/user/1000/buildkit/buildkitd.sock"
+time="2025-06-24T12:42:36Z" level=info msg="auto snapshotter: using overlayfs"
+time="2025-06-24T12:42:36Z" level=warning msg="NoProcessSandbox is enabled. Note that NoProcessSandbox allows build containers to kill (and potentially ptrace) an arbitrary process in the BuildKit host namespace. NoProcessSandbox should be enabled only when the BuildKit is running in a container as an unprivileged user."
+time="2025-06-24T12:42:36Z" level=warning msg="CDI setup error /etc/cdi: failed to monitor for changes: no such file or directory"
+time="2025-06-24T12:42:36Z" level=warning msg="CDI setup error /var/run/cdi: failed to monitor for changes: no such file or directory"
+time="2025-06-24T12:42:36Z" level=warning msg="CDI setup error /etc/buildkit/cdi: failed to monitor for changes: no such file or directory"
+time="2025-06-24T12:42:36Z" level=info msg="found worker \"dptgp7yorzm4afymsmmpieysg\", labels=map[org.mobyproject.buildkit.worker.executor:oci org.mobyproject.buildkit.worker.hostname:buildkitd-arm-7f6498ffb-tnt2p org.mobyproject.buildkit.worker.network:host org.mobyproject.buildkit.worker.oci.process-mode:no-sandbox org.mobyproject.buildkit.worker.selinux.enabled:false org.mobyproject.buildkit.worker.snapshotter:overlayfs], platforms=[linux/arm64 linux/amd64 linux/amd64/v2 linux/riscv64 linux/ppc64le linux/s390x linux/386 linux/arm/v7 linux/arm/v6]"
+time="2025-06-24T12:42:36Z" level=warning msg="skipping containerd worker, as \"/run/containerd/containerd.sock\" does not exist"
+time="2025-06-24T12:42:36Z" level=info msg="found 1 workers, default=\"dptgp7yorzm4afymsmmpieysg\""
+time="2025-06-24T12:42:36Z" level=warning msg="currently, only the default worker can be used."
+time="2025-06-24T12:42:36Z" level=info msg="running server on /run/user/1000/buildkit/buildkitd.sock"
+time="2025-06-24T12:42:36Z" level=info msg="running server on [::]:1234"
+time="2025-06-24T13:16:11Z" level=info msg="fetch failed after status: 404 Not Found" host=registry-1.docker.io
+time="2025-06-24T13:16:18Z" level=warning msg="reference for unknown type: application/vnd.buildkit.cacheconfig.v0" spanID=f571e02d450f43f3 traceID=12ce6ee558044e79ad1e2ca62ef9ec14
+time="2025-06-24T13:23:32Z" level=warning msg="reference for unknown type: application/vnd.buildkit.cacheconfig.v0" spanID=21634be1f5621be6 traceID=6b8e9b10763c69bf4225df5d39c2564c
+time="2025-06-24T13:26:08Z" level=warning msg="reference for unknown type: application/vnd.buildkit.cacheconfig.v0" spanID=e77cec090168b164 traceID=b0b173f7c84d48bea1d9516fb9e87958
+</pre>
+</details>
+---
+
+![docker hub](/images/1.png)
