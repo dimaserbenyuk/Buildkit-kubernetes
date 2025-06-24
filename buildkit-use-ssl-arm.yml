@@ -17,8 +17,6 @@ data:
 
     [registry."docker.io"]
       mirrors = ["https://registry-1.docker.io"]
-      http = false
-      insecure = false
 
 ---
 apiVersion: apps/v1
@@ -53,6 +51,9 @@ spec:
             - --tlskey
             - /certs/key.pem
             - --oci-worker-no-process-sandbox
+          env:
+            - name: JAEGER_TRACE
+              value: "jaeger-agent.jaeger.svc.cluster.local:6831"
           readinessProbe:
             exec:
               command:
@@ -121,3 +122,19 @@ spec:
   selector:
     app: buildkitd-arm
 
+# buildctl \
+#   --addr tcp://buildkitd.example.com:1234 \
+#   --tlscacert ca.pem \
+#   --tlscert cert.pem \
+#   --tlskey key.pem \
+#   build \
+#   --frontend dockerfile.v0 \
+#   --local context=. \
+#   --local dockerfile=. \
+#   --secret id=regcred,src=$HOME/.docker/config.json \
+#   --allow=secret.regcred \
+#   --opt filename=Dockerfile.cache \
+#   --progress=plain \
+#   --import-cache type=registry,ref=docker.io/serbenyuk/buildkit:cache \
+#   --export-cache type=registry,ref=docker.io/serbenyuk/buildkit:cache,mode=max \
+#   --output type=image,name=docker.io/serbenyuk/buildkit:latest,push=true

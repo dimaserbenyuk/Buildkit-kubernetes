@@ -664,3 +664,7 @@ time="2025-06-24T13:26:08Z" level=warning msg="reference for unknown type: appli
 ---
 
 ![docker hub](/images/1.png)
+
+![jager](/images/2.png)
+
+![jager](/images/3.png)
