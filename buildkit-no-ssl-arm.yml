@@ -8,11 +8,18 @@ data:
     root = "/var/lib/buildkit"
     debug = false
     [worker.oci]
-      max-parallelism = 32
-      gckeepstorage = "70%"
+      max-parallelism = 16
+      gckeepstorage = "80%"
       enabled = true
       gc = true
       snapshotter = "overlayfs"
+    
+    [grpc]
+      max_recv_msg_size = 67108864  # 64MB
+      max_send_msg_size = 67108864  # 64MB
+    
+    [registry."docker.io"]
+      mirrors = ["https://registry-1.docker.io"]
 
 ---
 apiVersion: apps/v1
@@ -24,7 +31,7 @@ metadata:
   namespace: buildkit
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: buildkitd-arm
@@ -57,19 +64,19 @@ spec:
             timeoutSeconds: 1
           resources:
             limits:
-              memory: "500Mi"
-              cpu: "300m"
+              memory: "2Gi"
+              cpu: "1000m"
             requests:
-              memory: "400Mi"
-              cpu: "200m"
+              memory: "1Gi"
+              cpu: "500m"
           securityContext:
             privileged: true
           volumeMounts:
             - name: config
               mountPath: /etc/buildkit/buildkitd.toml
               subPath: buildkitd.toml
-            - name: var-lib-buildkit
-              mountPath: /var/lib/buildkit
+            # - name: var-lib-buildkit
+            #   mountPath: /var/lib/buildkit
       volumes:
         - name: config
           configMap:
@@ -77,9 +84,9 @@ spec:
             items:
               - key: buildkitd.toml
                 path: buildkitd.toml
-        - name: var-lib-buildkit
-          persistentVolumeClaim:
-            claimName: pv-volume
+        # - name: var-lib-buildkit
+        #   persistentVolumeClaim:
+        #     claimName: pv-volume
 ---
 
 apiVersion: v1
@@ -97,29 +104,69 @@ spec:
       targetPort: 1234
 
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-volume
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteMany
-  storageClassName: ""
-  hostPath:
-    path: "/data/buildkit"
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: pv-volume
+# spec:
+#   capacity:
+#     storage: 10Gi
+#   accessModes:
+#     - ReadWriteMany
+#   storageClassName: ""
+#   hostPath:
+#     path: "/data/buildkit"
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: pv-volume
+#   namespace: buildkit
+# spec:
+#   volumeName: pv-volume
+#   accessModes:
+#     - ReadWriteMany
+#   storageClassName: ""
+#   resources:
+#     requests:
+#       storage: 10Gi
+
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
 metadata:
-  name: pv-volume
+  name: buildkitd-arm-hpa
   namespace: buildkit
 spec:
-  volumeName: pv-volume
-  accessModes:
-    - ReadWriteMany
-  storageClassName: ""
-  resources:
-    requests:
-      storage: 10Gi
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: buildkitd-arm
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60

@@ -42,6 +42,8 @@ info
 buildctl --addr tcp://127.0.0.1:1234 debug info
 ```
 
+buildctl --addr tcp://127.0.0.1:1234 du
+
 output
 
 ```shell
